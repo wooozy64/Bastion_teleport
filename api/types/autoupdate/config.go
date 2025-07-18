@@ -104,6 +104,15 @@ func checkAgentSchedules(c *autoupdate.AutoUpdateConfig) error {
 		if group.StartHour > 23 || group.StartHour < 0 {
 			return trace.BadParameter("spec.agents.schedules.regular[%d].start_hour must be between 0 and 23", i)
 		}
+		if group.CanaryCount > MaxCanaryCount {
+			return trace.BadParameter("spec.agents.schedule.regular[%d].canary_count cannot be greater than %d", i, MaxCanaryCount)
+		}
+		if c.Spec.Agents.Strategy == AgentsStrategyTimeBased && group.CanaryCount != 0 {
+			return trace.BadParameter("spec.agents.schedules.regular[%d].canary_count is not zero but the strategy %q doesn't support canaries", i, AgentsStrategyTimeBased)
+		}
+		if group.CanaryCount < 0 {
+			return trace.BadParameter("spec.agents.schedule.regular[%d].canary_count cannot be negative", i)
+		}
 		if c.Spec.Agents.Strategy == AgentsStrategyTimeBased && group.WaitHours != 0 {
 			return trace.BadParameter("spec.agents.schedules.regular[%d].wait_hours must be zero when strategy is %s", i, AgentsStrategyTimeBased)
 		}
